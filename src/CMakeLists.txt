@@ -1,0 +1,3 @@
+file(GLOB MODULE_SRC "${PROJECT_SOURCE_DIR}/src/module/*.cpp")
+
+set(LIB_SRC ${LIB_SRC} ${MODULE_SRC} PARENT_SCOPE)
