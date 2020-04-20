@@ -3,7 +3,13 @@
 
 ### Program Usage
 
-- TO BE FILLED 
+- TO BE FILLED DEPENDING ON PROJECT
+
+- Features :
+    - Project utilizes *Clang-tidy* if present to perform code standard checks
+    - Project can build *LaTeX* documentation if *LaTeX* is present
+    - Project can generate code documentation using *Doxygen* if present
+    - Example ``.clang-format`` file is provided to maintain code style using *clang-format*
 
 ### Build instructions
 

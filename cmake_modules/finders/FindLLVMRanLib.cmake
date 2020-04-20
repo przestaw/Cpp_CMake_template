@@ -1,7 +1,7 @@
 include(FeatureSummary)
 
 find_program(LLVMRANLIB_EXECUTABLE
-        NAMES llvm-ranlib llvm-ranlib-10 llvm-ranlib-11 llvm-ranlib-*
+        NAMES llvm-ranlib llvm-ranlib-11 llvm-ranlib-10
         DOC "The llvm-ranlib executable"
         )
 
