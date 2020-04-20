@@ -1,7 +1,7 @@
 include(FeatureSummary)
 
 find_program(LLVMAR_EXECUTABLE
-        NAMES llvm-ar llvm-ar-10 llvm-ar-11 llvm-ar-*
+        NAMES llvm-ar llvm-ar-11 llvm-ar-10
         DOC "The llvm-ar executable"
         )
 
