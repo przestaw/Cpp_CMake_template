@@ -20,6 +20,8 @@ list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake_modules")
 find_package(LATEX)
 find_package(Doxygen)
 
+option(Debug_STDLIB "Enable stdlib debug" TRUE)
+
 # Configure Clang-tidy
 set(CLANG_TIDY_CHECKS "cppcoreguidelines-*,performance-*,portability-*,-clang-analyzer-*,readability-*,cert-*,bugprone-*")
 
@@ -39,7 +41,7 @@ find_package(Boost COMPONENTS program_options unit_test_framework REQUIRED)
 set(EXTERNAL_LIBS "Boost::program_options")
 
 # CXX standard
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 23)
 
 # Configure Toolchain
 if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
@@ -80,17 +82,21 @@ elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     include(GNUtoolchain)
 endif()
 
+if(${Debug_STDLIB})
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -D_DEBUG -D_GLIBCXX_DEBUG")
+endif()
+
 # Set output directories
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin/${CMAKE_BUILD_TYPE})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin/${CMAKE_BUILD_TYPE})
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin/${CMAKE_BUILD_TYPE})
 
+include_directories(${PROJECT_SOURCE_DIR}/include ${BOOST_INCLUDE_DIR})
+
 # Include src and test for library and test-check
 add_subdirectory("include")
 add_subdirectory("src")
 add_subdirectory("test")
-
-include_directories(${PROJECT_SOURCE_DIR}/include ${BOOST_INCLUDE_DIR})
 
 # library
 add_library(${LIBRARY} ${LIB_SRC} ${LIB_INC})
