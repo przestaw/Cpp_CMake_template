@@ -143,6 +143,7 @@ class Workflow:
 def discover(source_root: Path, skip=('.git', '.svn', 'node_modules', '.cmake')) -> tuple[list[str], list[str]]:
     """All .pro files, and those not referenced as a SUBDIRS child of another (suggested roots).
     Text-based and only a suggestion: the list in workflow.json is the authority."""
+    source_root = Path(source_root).resolve()
     pros = []
     for dirpath, dirnames, filenames in os.walk(source_root):
         dirnames[:] = sorted(d for d in dirnames if d not in skip and not d.startswith('build'))
