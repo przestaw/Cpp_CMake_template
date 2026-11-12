@@ -1,118 +1,181 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.25)
 
-# Set naming scheme 
-set(PROJECT_NAME template)
-project(${PROJECT_NAME})
+# ==== POLICIES ====
+# NOTE: CMP0141 NEW must be set BEFORE `project()` so MSVC debug format selection
+# uses `CMAKE_MSVC_DEBUG_INFORMATION_FORMAT` (e.g. `Embedded` -> `/Z7` for sccache)
+# instead of hardcoding `/Zi` into default compiler flags.
+cmake_policy(SET CMP0141 NEW)
 
-set(PROJECT_DESCRIPTION "Template Cpp project with boost::test")
+# ==== VERSIONING & PROJECT METADATA ====
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+include(git_version)
 
-set(EXECUTABLE ${PROJECT_NAME}-program)
-set(LIBRARY ${PROJECT_NAME}-lib)
-set(TEST ${PROJECT_NAME}-test)
-set(CHECK ${TEST}-check)
-set(DOC ${PROJECT_NAME}-doc)
+project(
+  cpp_template
+  VERSION "${CPP_TEMPLATE_SEMVER}"
+  DESCRIPTION "Modern C++20 CMake project template"
+  LANGUAGES CXX
+)
 
-# Add custom cmake modules
-list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake_modules/finders")
-list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake_modules")
+# ==== LANGUAGE & IDE DEFAULTS ====
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
-# Find external tools
-find_package(LATEX)
-find_package(Doxygen)
+# ==== OPTIONS ====
+# NOTE: `ENABLE_TESTS` defaults to OFF in base configurations so downstream
+# `FetchContent` / `add_subdirectory` consumers do not pay for building unit tests;
+# developer and CI `*-tests` presets turn it ON explicitly.
+option(ENABLE_TESTS "Build unit tests and register CTest suite" OFF)
+option(ENABLE_SCCACHE "Use sccache as compiler launcher when available" OFF)
+option(ENABLE_UNITY_BUILD "Enable CMake unity builds on internal targets" OFF)
+set(UNITY_BUILD_BATCH_SIZE "8" CACHE STRING "Maximum translation units per unity batch")
+option(ENABLE_CLANG_TIDY "Run clang-tidy static analysis on internal targets" OFF)
+option(ENABLE_SANITIZERS "Enable ASan/UBSan instrumentation on internal targets" OFF)
+option(ENABLE_DOCS "Build Doxygen HTML documentation" OFF)
+option(CPP_TEMPLATE_INSTALL "Generate install and CMake package export rules" ${PROJECT_IS_TOP_LEVEL})
 
-option(Debug_STDLIB "Enable stdlib debug" TRUE)
-
-# Configure Clang-tidy
-set(CLANG_TIDY_CHECKS "cppcoreguidelines-*,performance-*,portability-*,-clang-analyzer-*,readability-*,cert-*,bugprone-*")
-
-find_package(CLANG_TIDY)
-if(CLANG_TIDY_FOUND)
-    set(CMAKE_CXX_CLANG_TIDY
-            ${CLANG_TIDY_EXE}
-            -checks=${CLANG_TIDY_CHECKS} )
-endif()
-
-# Add CTest
-include(CTest)
-enable_testing()
-
-# Add external libs : boost
-find_package(Boost COMPONENTS program_options unit_test_framework REQUIRED)
-set(EXTERNAL_LIBS "Boost::program_options")
-
-# CXX standard
-set(CMAKE_CXX_STANDARD 23)
-
-# Configure Toolchain
-if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-    # using Clang
-    if(USE_THREAD_CONTROL)
-        set(CODE_CONTROL_FLAGS ${CODE_CONTROL_FLAGS} -Wthread-safety -fsanitize=thread)
+# ==== DEPENDENCIES & TOOLING ====
+if(ENABLE_SCCACHE)
+  find_program(SCCACHE_PROGRAM NAMES sccache)
+  if(SCCACHE_PROGRAM)
+    set(CMAKE_CXX_COMPILER_LAUNCHER "${SCCACHE_PROGRAM}")
+    if(MSVC)
+      # NOTE: MSVC `/Zi` writes through a shared `mspdbsrv.exe` daemon that prevents
+      # sccache from caching object files. `Embedded` emits `/Z7` debug info inline.
+      set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "$<$<CONFIG:Debug,RelWithDebInfo>:Embedded>")
     endif()
-    if(USE_CODE_CONTROL)
-        set(CODE_CONTROL_FLAGS ${CODE_CONTROL_FLAGS} -fsanitize=memory -fsanitize=address -fsanitize=undefined)
+    message(STATUS "sccache enabled: ${SCCACHE_PROGRAM}")
+  else()
+    message(WARNING "ENABLE_SCCACHE is ON, but 'sccache' was not found on PATH; continuing without cache.")
+  endif()
+endif()
+
+set(CPP_TEMPLATE_CLANG_TIDY_CMD "")
+if(ENABLE_CLANG_TIDY)
+  find_program(CLANG_TIDY_PROGRAM NAMES clang-tidy)
+  if(CLANG_TIDY_PROGRAM)
+    set(CPP_TEMPLATE_CLANG_TIDY_CHECKS
+      "bugprone-*,cert-*,cppcoreguidelines-*,modernize-*,performance-*,portability-*,readability-*,-modernize-use-trailing-return-type,-readability-identifier-length,-cppcoreguidelines-avoid-magic-numbers,-readability-magic-numbers"
+    )
+    set(CPP_TEMPLATE_CLANG_TIDY_CMD
+      "${CLANG_TIDY_PROGRAM}"
+      "-checks=${CPP_TEMPLATE_CLANG_TIDY_CHECKS}"
+    )
+    if(MSVC)
+      # NOTE: Ensure C++ exception handling semantics are enabled when clang-tidy
+      # parses translation units in MSVC `clang-cl` driver mode on Windows.
+      list(APPEND CPP_TEMPLATE_CLANG_TIDY_CMD "--extra-arg=/EHsc")
     endif()
-    
-    set(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG}   -O0 -g ${CODE_CONTROL_FLAGS} -Wextra-tokens -Wambiguous-member-template -Wshadow -Wall -pedantic -Wextra -Wold-style-cast")
-    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -finline-functions -fmerge-all-constants -fvectorize -flto")
-
-    include(LLVMtoolchain)
-
-    set(CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS} -fuse-ld=lld)
-
-    set(CMAKE_C_ARCHIVE_CREATE "<CMAKE_AR> qcs <TARGET> <LINK_FLAGS> <OBJECTS>")
-    set(CMAKE_C_ARCHIVE_FINISH   true)
-    set(CMAKE_CXX_ARCHIVE_CREATE "<CMAKE_AR> qcs <TARGET> <LINK_FLAGS> <OBJECTS>")
-    set(CMAKE_CXX_ARCHIVE_FINISH true)
-
-elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    if(CMAKE_BUILD_TYPE EQUAL Release)
-        cmake_policy(SET CMP0069 NEW)
-        include(CheckIPOSupported)
-        check_ipo_supported(IPO_SUPPORT)
-        if(IPO_SUPPORT)
-            set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
-        endif()
-    endif()
-
-    # using GCC
-    set(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG}   -O0 -Og -g -Wshadow -Wall -pedantic -Wextra -Wold-style-cast")
-    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -finline-functions -fdevirtualize -fmerge-constants")
-
-    include(GNUtoolchain)
+    message(STATUS "clang-tidy enabled: ${CLANG_TIDY_PROGRAM}")
+  else()
+    message(WARNING "ENABLE_CLANG_TIDY is ON, but 'clang-tidy' was not found on PATH; skipping analysis.")
+  endif()
 endif()
 
-if(${Debug_STDLIB})
-    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -D_DEBUG -D_GLIBCXX_DEBUG")
+include(GNUInstallDirs)
+include(add_project_target)
+
+# ==== GENERATED HEADERS ====
+configure_file(
+  "${PROJECT_SOURCE_DIR}/include/cpp_template/version.hpp.in"
+  "${PROJECT_BINARY_DIR}/include/cpp_template/version.hpp"
+  @ONLY
+)
+
+# ==== TARGETS ====
+add_subdirectory(src)
+add_subdirectory(apps)
+
+# ==== TESTING ====
+# NOTE: Synchronize `BUILD_TESTING` before including `CTest` so CTest's built-in
+# `option(BUILD_TESTING ... ON)` respects `ENABLE_TESTS`.
+set(BUILD_TESTING "${ENABLE_TESTS}" CACHE BOOL "Build the testing tree." FORCE)
+if(ENABLE_TESTS)
+  include(CTest)
+  enable_testing()
+  add_subdirectory(tests)
 endif()
 
-# Set output directories
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin/${CMAKE_BUILD_TYPE})
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin/${CMAKE_BUILD_TYPE})
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin/${CMAKE_BUILD_TYPE})
+# ==== DOCUMENTATION ====
+if(ENABLE_DOCS)
+  find_package(Doxygen QUIET)
+  if(Doxygen_FOUND)
+    set(DOXYGEN_PROJECT_NAME "${PROJECT_NAME}")
+    set(DOXYGEN_PROJECT_NUMBER "${CPP_TEMPLATE_VERSION}")
+    set(DOXYGEN_PROJECT_BRIEF "${PROJECT_DESCRIPTION}")
+    set(DOXYGEN_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/docs")
+    set(DOXYGEN_GENERATE_HTML YES)
+    set(DOXYGEN_GENERATE_LATEX NO)
+    set(DOXYGEN_GENERATE_MAN NO)
+    set(DOXYGEN_EXTRACT_ALL YES)
+    set(DOXYGEN_GENERATE_TREEVIEW YES)
+    set(DOXYGEN_USE_MDFILE_AS_MAINPAGE "${PROJECT_SOURCE_DIR}/README.md")
 
-include_directories(${PROJECT_SOURCE_DIR}/include ${BOOST_INCLUDE_DIR})
-
-# Include src and test for library and test-check
-add_subdirectory("include")
-add_subdirectory("src")
-add_subdirectory("test")
-
-# library
-add_library(${LIBRARY} ${LIB_SRC} ${LIB_INC})
-add_dependencies(${LIBRARY} ${CHECK})
-
-# Program executable
-add_executable(${EXECUTABLE} src/main.cpp)
-add_dependencies(${EXECUTABLE} ${LIBRARY})
-target_link_libraries(${EXECUTABLE} ${LIBRARY})
-target_link_libraries(${EXECUTABLE} ${EXTERNAL_LIBS})
-
-# "all" target
-if(LATEX_FOUND OR DOXYGEN_FOUND)
-    # Only valid if documentation tools are present
-    add_subdirectory(doc)
-    add_custom_target(build-all DEPENDS ${DOC} ${PROGRAM} ${LIB} ${CHECK} ${TEST})
-else()
-    add_custom_target(build-all DEPENDS ${PROGRAM} ${LIB} ${CHECK} ${TEST})
+    doxygen_add_docs(
+      cpp_template_docs
+      "${PROJECT_SOURCE_DIR}/include"
+      "${PROJECT_SOURCE_DIR}/src"
+      "${PROJECT_SOURCE_DIR}/README.md"
+      ALL
+      COMMENT "Generating HTML API documentation in ${CMAKE_BINARY_DIR}/docs"
+    )
+    set_target_properties(cpp_template_docs PROPERTIES FOLDER "Docs")
+  else()
+    message(WARNING "ENABLE_DOCS is ON, but Doxygen was not found; skipping documentation build.")
+  endif()
 endif()
+
+# ==== INSTALLATION & PACKAGE EXPORT ====
+if(CPP_TEMPLATE_INSTALL)
+  include(CMakePackageConfigHelpers)
+
+  install(
+    TARGETS cpp_template cpp_template_cli
+    EXPORT cpp_templateTargets
+    ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+    LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+    RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
+    INCLUDES DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
+  )
+
+  install(
+    DIRECTORY "${PROJECT_SOURCE_DIR}/include/"
+    DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
+    FILES_MATCHING PATTERN "*.hpp"
+  )
+
+  install(
+    FILES "${PROJECT_BINARY_DIR}/include/cpp_template/version.hpp"
+    DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/cpp_template"
+  )
+
+  install(
+    EXPORT cpp_templateTargets
+    FILE cpp_templateTargets.cmake
+    NAMESPACE cpp_template::
+    DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/cpp_template"
+  )
+
+  configure_package_config_file(
+    "${PROJECT_SOURCE_DIR}/cmake/Config.cmake.in"
+    "${PROJECT_BINARY_DIR}/cpp_templateConfig.cmake"
+    INSTALL_DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/cpp_template"
+  )
+
+  write_basic_package_version_file(
+    "${PROJECT_BINARY_DIR}/cpp_templateConfigVersion.cmake"
+    VERSION "${PROJECT_VERSION}"
+    COMPATIBILITY SameMajorVersion
+  )
+
+  install(
+    FILES
+      "${PROJECT_BINARY_DIR}/cpp_templateConfig.cmake"
+      "${PROJECT_BINARY_DIR}/cpp_templateConfigVersion.cmake"
+    DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/cpp_template"
+  )
+endif()
+

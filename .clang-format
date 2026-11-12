@@ -1,33 +1,38 @@
 ---
 BasedOnStyle: LLVM
+Language: Cpp
+Standard: c++20
 
 AlignAfterOpenBracket: Align
-AlignConsecutiveMacros: true
-AlignConsecutiveAssignments: true
-AlignConsecutiveDeclarations: false
+AlignConsecutiveAssignments: Consecutive
+AlignConsecutiveMacros: Consecutive
 AlignEscapedNewlines: Left
-AlignOperands: true
-AlignTrailingComments: true
+AlignOperands: Align
+AlignTrailingComments:
+  Kind: Always
 AllowAllArgumentsOnNextLine: true
-AllowAllConstructorInitializersOnNextLine: true
 AllowAllParametersOfDeclarationOnNextLine: true
-AllowShortBlocksOnASingleLine: "Empty" # ??
+AllowShortBlocksOnASingleLine: Empty
 AllowShortCaseLabelsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: Inline
 AllowShortIfStatementsOnASingleLine: Never
-AllowShortLoopsOnASingleLine: true
+AllowShortLoopsOnASingleLine: false
 BreakBeforeBinaryOperators: NonAssignment
 BreakConstructorInitializers: BeforeColon
 BreakStringLiterals: true
+ColumnLimit: 100
 CompactNamespaces: false
 Cpp11BracedListStyle: true
-DerivePointerAlignment: true
+DerivePointerAlignment: false
 FixNamespaceComments: true
-Language: Cpp
-NamespaceIndentation: All
-PointerAlignment: Right
+IncludeBlocks: Regroup
+IndentCaseLabels: true
+IndentWidth: 2
+NamespaceIndentation: None
+PointerAlignment: Left
 ReflowComments: true
-Standard: "c++17"
+SortIncludes: CaseSensitive
 TabWidth: 2
 UseTab: Never
-
 ...
+

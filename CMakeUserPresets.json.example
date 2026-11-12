@@ -1,0 +1,84 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 25,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "local-vcpkg",
+      "hidden": true,
+      "cacheVariables": {
+        "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+        "ENABLE_SCCACHE": "ON"
+      }
+    },
+    {
+      "name": "dev-win-debug",
+      "displayName": "Dev | Local Windows MSVC Debug + vcpkg",
+      "description": "Local developer override inheriting project preset and attaching vcpkg + sccache",
+      "inherits": ["win-msvc-x64-debug-tests", "local-vcpkg"],
+      "cacheVariables": {
+        "ENABLE_CLANG_TIDY": "OFF"
+      }
+    },
+    {
+      "name": "dev-win-clang-cl-debug",
+      "displayName": "Dev | Local Windows clang-cl Debug",
+      "description": "Local Windows clang-cl preset inheriting host architecture base without cl lock-in",
+      "inherits": "win-base",
+      "cacheVariables": {
+        "CMAKE_CXX_COMPILER": "clang-cl",
+        "CMAKE_BUILD_TYPE": "Debug",
+        "ENABLE_TESTS": "ON",
+        "ENABLE_SCCACHE": "ON"
+      }
+    },
+    {
+      "name": "dev-linux-debug",
+      "displayName": "Dev | Local Linux Clang Debug + Sanitizers",
+      "description": "Local Linux developer preset with ASan/UBSan and sccache enabled",
+      "inherits": "linux-clang-x64-debug-tests",
+      "cacheVariables": {
+        "ENABLE_SCCACHE": "ON",
+        "ENABLE_SANITIZERS": "ON",
+        "ENABLE_CLANG_TIDY": "ON"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "dev-win-debug",
+      "inherits": "win-build-base",
+      "configurePreset": "dev-win-debug"
+    },
+    {
+      "name": "dev-win-clang-cl-debug",
+      "inherits": "win-build-base",
+      "configurePreset": "dev-win-clang-cl-debug"
+    },
+    {
+      "name": "dev-linux-debug",
+      "inherits": "linux-build-base",
+      "configurePreset": "dev-linux-debug"
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "dev-win-debug",
+      "inherits": "win-test-enabled-base",
+      "configurePreset": "dev-win-debug"
+    },
+    {
+      "name": "dev-win-clang-cl-debug",
+      "inherits": "win-test-enabled-base",
+      "configurePreset": "dev-win-clang-cl-debug"
+    },
+    {
+      "name": "dev-linux-debug",
+      "inherits": "linux-test-enabled-base",
+      "configurePreset": "dev-linux-debug"
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+@PACKAGE_INIT@
+
+# ==== EXPORTED TARGETS ====
+# NOTE: Load the generated target export set so downstream projects consume
+# the namespaced imported target `cpp_template::cpp_template`.
+include("${CMAKE_CURRENT_LIST_DIR}/cpp_templateTargets.cmake")
+
+check_required_components(cpp_template)

@@ -1,0 +1,125 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  linux:
+    name: Linux (${{ matrix.preset }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - preset: linux-gcc-x64-debug-tests
+            build_type: Debug
+          - preset: linux-gcc-x64-release-tests
+            build_type: Release
+          - preset: linux-clang-x64-debug-tests
+            build_type: Debug
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install Ninja and Clang toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends ninja-build clang
+
+      - name: Configure, build, and test (${{ matrix.preset }})
+        run: cmake --workflow --preset ${{ matrix.preset }}
+
+      - name: Install (${{ matrix.preset }})
+        run: cmake --install out/build/${{ matrix.preset }} --prefix out/install/${{ matrix.preset }}
+
+      - name: Verify downstream find_package consumer
+        run: |
+          mkdir -p out/consumer-src
+          cat <<'EOF' > out/consumer-src/CMakeLists.txt
+          cmake_minimum_required(VERSION 3.25)
+          project(consumer LANGUAGES CXX)
+          find_package(cpp_template CONFIG REQUIRED)
+          add_executable(consumer main.cpp)
+          target_link_libraries(consumer PRIVATE cpp_template::cpp_template)
+          EOF
+          cat <<'EOF' > out/consumer-src/main.cpp
+          #include <cpp_template/greeter.hpp>
+          #include <cpp_template/version.hpp>
+          int main() {
+            const cpp_template::greeter g{};
+            return g.greet(cpp_template::kProjectName).empty() ? 1 : 0;
+          }
+          EOF
+          cmake -S out/consumer-src -B out/consumer-build -G Ninja \
+            -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+            -DCMAKE_PREFIX_PATH="${GITHUB_WORKSPACE}/out/install/${{ matrix.preset }}"
+          cmake --build out/consumer-build
+          ./out/consumer-build/consumer
+
+  windows:
+    name: Windows (${{ matrix.preset }})
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - preset: win-msvc-x64-debug-tests
+            build_type: Debug
+          - preset: win-msvc-x64-relwithdebinfo-tests
+            build_type: RelWithDebInfo
+          - preset: win-msvc-x64-release-tests
+            build_type: Release
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up MSVC x64 developer environment
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      - name: Configure, build, and test (${{ matrix.preset }})
+        run: cmake --workflow --preset ${{ matrix.preset }}
+
+      - name: Install (${{ matrix.preset }})
+        run: cmake --install out/build/${{ matrix.preset }} --prefix out/install/${{ matrix.preset }}
+
+      - name: Verify downstream find_package consumer
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path out/consumer-src | Out-Null
+          @'
+          cmake_minimum_required(VERSION 3.25)
+          project(consumer LANGUAGES CXX)
+          find_package(cpp_template CONFIG REQUIRED)
+          add_executable(consumer main.cpp)
+          target_link_libraries(consumer PRIVATE cpp_template::cpp_template)
+          '@ | Set-Content -Path out/consumer-src/CMakeLists.txt -Encoding UTF8
+          @'
+          #include <cpp_template/greeter.hpp>
+          #include <cpp_template/version.hpp>
+          int main() {
+            const cpp_template::greeter g{};
+            return g.greet(cpp_template::kProjectName).empty() ? 1 : 0;
+          }
+          '@ | Set-Content -Path out/consumer-src/main.cpp -Encoding UTF8
+          cmake -S out/consumer-src -B out/consumer-build -G Ninja `
+            -DCMAKE_CXX_COMPILER=cl `
+            -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} `
+            -DCMAKE_PREFIX_PATH="$PWD/out/install/${{ matrix.preset }}"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          cmake --build out/consumer-build
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          ./out/consumer-build/consumer.exe
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

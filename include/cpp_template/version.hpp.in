@@ -1,0 +1,52 @@
+/**
+ * @file version.hpp
+ * @brief Build-time project version and git revision metadata.
+ */
+#ifndef CPP_TEMPLATE_VERSION_HPP
+#define CPP_TEMPLATE_VERSION_HPP
+
+#include <string_view>
+
+namespace cpp_template {
+
+/**
+ * @brief Structured semantic version and revision descriptor.
+ */
+struct version_info {
+  std::string_view name;
+  std::string_view version;
+  std::string_view semver;
+  std::string_view git_commit;
+  unsigned int major;
+  unsigned int minor;
+  unsigned int patch;
+};
+
+inline constexpr std::string_view kProjectName = "@PROJECT_NAME@";
+inline constexpr std::string_view kVersion = "@CPP_TEMPLATE_VERSION@";
+inline constexpr std::string_view kSemver = "@CPP_TEMPLATE_SEMVER@";
+inline constexpr std::string_view kGitCommit = "@CPP_TEMPLATE_GIT_COMMIT@";
+
+inline constexpr unsigned int kVersionMajor = @PROJECT_VERSION_MAJOR@U;
+inline constexpr unsigned int kVersionMinor = @PROJECT_VERSION_MINOR@U;
+inline constexpr unsigned int kVersionPatch = @PROJECT_VERSION_PATCH@U;
+
+/**
+ * @brief Returns compile-time version metadata stamped by CMake.
+ * @return Populated version_info structure.
+ */
+[[nodiscard]] constexpr version_info get_version_info() noexcept {
+  return version_info{
+      .name = kProjectName,
+      .version = kVersion,
+      .semver = kSemver,
+      .git_commit = kGitCommit,
+      .major = kVersionMajor,
+      .minor = kVersionMinor,
+      .patch = kVersionPatch,
+  };
+}
+
+} // namespace cpp_template
+
+#endif // CPP_TEMPLATE_VERSION_HPP

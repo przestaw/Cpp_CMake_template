@@ -1,0 +1,479 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 25,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "base",
+      "hidden": true,
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/out/build/${presetName}",
+      "installDir": "${sourceDir}/out/install/${presetName}",
+      "cacheVariables": {
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+      }
+    },
+    {
+      "name": "win-base",
+      "hidden": true,
+      "inherits": "base",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      },
+      "architecture": {
+        "value": "x64",
+        "strategy": "external"
+      }
+    },
+    {
+      "name": "win-msvc-base",
+      "hidden": true,
+      "inherits": "win-base",
+      "cacheVariables": {
+        "CMAKE_CXX_COMPILER": "cl"
+      }
+    },
+    {
+      "name": "linux-base",
+      "hidden": true,
+      "inherits": "base",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      }
+    },
+    {
+      "name": "win-msvc-x64-debug",
+      "displayName": "Windows MSVC x64 Debug",
+      "description": "MSVC x64 Debug build with Ninja (tests disabled)",
+      "inherits": "win-msvc-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "ENABLE_TESTS": "OFF"
+      }
+    },
+    {
+      "name": "win-msvc-x64-relwithdebinfo",
+      "displayName": "Windows MSVC x64 RelWithDebInfo",
+      "description": "MSVC x64 RelWithDebInfo build with Ninja (tests disabled)",
+      "inherits": "win-msvc-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "ENABLE_TESTS": "OFF"
+      }
+    },
+    {
+      "name": "win-msvc-x64-release",
+      "displayName": "Windows MSVC x64 Release",
+      "description": "MSVC x64 Release build with Ninja (tests disabled)",
+      "inherits": "win-msvc-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "ENABLE_TESTS": "OFF"
+      }
+    },
+    {
+      "name": "win-msvc-x64-debug-tests",
+      "displayName": "Windows MSVC x64 Debug (Tests)",
+      "description": "MSVC x64 Debug build with unit and CLI tests enabled",
+      "inherits": "win-msvc-x64-debug",
+      "cacheVariables": {
+        "ENABLE_TESTS": "ON"
+      }
+    },
+    {
+      "name": "win-msvc-x64-relwithdebinfo-tests",
+      "displayName": "Windows MSVC x64 RelWithDebInfo (Tests)",
+      "description": "MSVC x64 RelWithDebInfo build with unit and CLI tests enabled",
+      "inherits": "win-msvc-x64-relwithdebinfo",
+      "cacheVariables": {
+        "ENABLE_TESTS": "ON"
+      }
+    },
+    {
+      "name": "win-msvc-x64-release-tests",
+      "displayName": "Windows MSVC x64 Release (Tests)",
+      "description": "MSVC x64 Release build with unit and CLI tests enabled",
+      "inherits": "win-msvc-x64-release",
+      "cacheVariables": {
+        "ENABLE_TESTS": "ON"
+      }
+    },
+    {
+      "name": "linux-gcc-x64-debug",
+      "displayName": "Linux GCC x64 Debug",
+      "description": "GCC x64 Debug build with Ninja (tests disabled)",
+      "inherits": "linux-base",
+      "cacheVariables": {
+        "CMAKE_CXX_COMPILER": "g++",
+        "CMAKE_BUILD_TYPE": "Debug",
+        "ENABLE_TESTS": "OFF"
+      }
+    },
+    {
+      "name": "linux-gcc-x64-relwithdebinfo",
+      "displayName": "Linux GCC x64 RelWithDebInfo",
+      "description": "GCC x64 RelWithDebInfo build with Ninja (tests disabled)",
+      "inherits": "linux-base",
+      "cacheVariables": {
+        "CMAKE_CXX_COMPILER": "g++",
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "ENABLE_TESTS": "OFF"
+      }
+    },
+    {
+      "name": "linux-gcc-x64-release",
+      "displayName": "Linux GCC x64 Release",
+      "description": "GCC x64 Release build with Ninja (tests disabled)",
+      "inherits": "linux-base",
+      "cacheVariables": {
+        "CMAKE_CXX_COMPILER": "g++",
+        "CMAKE_BUILD_TYPE": "Release",
+        "ENABLE_TESTS": "OFF"
+      }
+    },
+    {
+      "name": "linux-gcc-x64-debug-tests",
+      "displayName": "Linux GCC x64 Debug (Tests)",
+      "description": "GCC x64 Debug build with unit and CLI tests enabled",
+      "inherits": "linux-gcc-x64-debug",
+      "cacheVariables": {
+        "ENABLE_TESTS": "ON"
+      }
+    },
+    {
+      "name": "linux-gcc-x64-relwithdebinfo-tests",
+      "displayName": "Linux GCC x64 RelWithDebInfo (Tests)",
+      "description": "GCC x64 RelWithDebInfo build with unit and CLI tests enabled",
+      "inherits": "linux-gcc-x64-relwithdebinfo",
+      "cacheVariables": {
+        "ENABLE_TESTS": "ON"
+      }
+    },
+    {
+      "name": "linux-gcc-x64-release-tests",
+      "displayName": "Linux GCC x64 Release (Tests)",
+      "description": "GCC x64 Release build with unit and CLI tests enabled",
+      "inherits": "linux-gcc-x64-release",
+      "cacheVariables": {
+        "ENABLE_TESTS": "ON"
+      }
+    },
+    {
+      "name": "linux-clang-x64-debug-tests",
+      "displayName": "Linux Clang x64 Debug (Tests)",
+      "description": "Clang x64 Debug build with unit and CLI tests enabled",
+      "inherits": "linux-base",
+      "cacheVariables": {
+        "CMAKE_CXX_COMPILER": "clang++",
+        "CMAKE_BUILD_TYPE": "Debug",
+        "ENABLE_TESTS": "ON"
+      }
+    },
+    {
+      "name": "linux-clang-x64-release-tests",
+      "displayName": "Linux Clang x64 Release (Tests)",
+      "description": "Clang x64 Release build with unit and CLI tests enabled",
+      "inherits": "linux-base",
+      "cacheVariables": {
+        "CMAKE_CXX_COMPILER": "clang++",
+        "CMAKE_BUILD_TYPE": "Release",
+        "ENABLE_TESTS": "ON"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "win-build-base",
+      "hidden": true,
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "linux-build-base",
+      "hidden": true,
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      }
+    },
+    {
+      "name": "win-msvc-x64-debug",
+      "inherits": "win-build-base",
+      "configurePreset": "win-msvc-x64-debug"
+    },
+    {
+      "name": "win-msvc-x64-relwithdebinfo",
+      "inherits": "win-build-base",
+      "configurePreset": "win-msvc-x64-relwithdebinfo"
+    },
+    {
+      "name": "win-msvc-x64-release",
+      "inherits": "win-build-base",
+      "configurePreset": "win-msvc-x64-release"
+    },
+    {
+      "name": "win-msvc-x64-debug-tests",
+      "inherits": "win-build-base",
+      "configurePreset": "win-msvc-x64-debug-tests"
+    },
+    {
+      "name": "win-msvc-x64-relwithdebinfo-tests",
+      "inherits": "win-build-base",
+      "configurePreset": "win-msvc-x64-relwithdebinfo-tests"
+    },
+    {
+      "name": "win-msvc-x64-release-tests",
+      "inherits": "win-build-base",
+      "configurePreset": "win-msvc-x64-release-tests"
+    },
+    {
+      "name": "linux-gcc-x64-debug",
+      "inherits": "linux-build-base",
+      "configurePreset": "linux-gcc-x64-debug"
+    },
+    {
+      "name": "linux-gcc-x64-relwithdebinfo",
+      "inherits": "linux-build-base",
+      "configurePreset": "linux-gcc-x64-relwithdebinfo"
+    },
+    {
+      "name": "linux-gcc-x64-release",
+      "inherits": "linux-build-base",
+      "configurePreset": "linux-gcc-x64-release"
+    },
+    {
+      "name": "linux-gcc-x64-debug-tests",
+      "inherits": "linux-build-base",
+      "configurePreset": "linux-gcc-x64-debug-tests"
+    },
+    {
+      "name": "linux-gcc-x64-relwithdebinfo-tests",
+      "inherits": "linux-build-base",
+      "configurePreset": "linux-gcc-x64-relwithdebinfo-tests"
+    },
+    {
+      "name": "linux-gcc-x64-release-tests",
+      "inherits": "linux-build-base",
+      "configurePreset": "linux-gcc-x64-release-tests"
+    },
+    {
+      "name": "linux-clang-x64-debug-tests",
+      "inherits": "linux-build-base",
+      "configurePreset": "linux-clang-x64-debug-tests"
+    },
+    {
+      "name": "linux-clang-x64-release-tests",
+      "inherits": "linux-build-base",
+      "configurePreset": "linux-clang-x64-release-tests"
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "test-no-tests-base",
+      "hidden": true,
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "ignore"
+      }
+    },
+    {
+      "name": "test-enabled-base",
+      "hidden": true,
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error"
+      }
+    },
+    {
+      "name": "win-test-no-tests-base",
+      "hidden": true,
+      "inherits": "test-no-tests-base",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "win-test-enabled-base",
+      "hidden": true,
+      "inherits": "test-enabled-base",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "linux-test-no-tests-base",
+      "hidden": true,
+      "inherits": "test-no-tests-base",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      }
+    },
+    {
+      "name": "linux-test-enabled-base",
+      "hidden": true,
+      "inherits": "test-enabled-base",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      }
+    },
+    {
+      "name": "win-msvc-x64-debug",
+      "inherits": "win-test-no-tests-base",
+      "configurePreset": "win-msvc-x64-debug"
+    },
+    {
+      "name": "win-msvc-x64-relwithdebinfo",
+      "inherits": "win-test-no-tests-base",
+      "configurePreset": "win-msvc-x64-relwithdebinfo"
+    },
+    {
+      "name": "win-msvc-x64-release",
+      "inherits": "win-test-no-tests-base",
+      "configurePreset": "win-msvc-x64-release"
+    },
+    {
+      "name": "win-msvc-x64-debug-tests",
+      "inherits": "win-test-enabled-base",
+      "configurePreset": "win-msvc-x64-debug-tests"
+    },
+    {
+      "name": "win-msvc-x64-relwithdebinfo-tests",
+      "inherits": "win-test-enabled-base",
+      "configurePreset": "win-msvc-x64-relwithdebinfo-tests"
+    },
+    {
+      "name": "win-msvc-x64-release-tests",
+      "inherits": "win-test-enabled-base",
+      "configurePreset": "win-msvc-x64-release-tests"
+    },
+    {
+      "name": "linux-gcc-x64-debug",
+      "inherits": "linux-test-no-tests-base",
+      "configurePreset": "linux-gcc-x64-debug"
+    },
+    {
+      "name": "linux-gcc-x64-relwithdebinfo",
+      "inherits": "linux-test-no-tests-base",
+      "configurePreset": "linux-gcc-x64-relwithdebinfo"
+    },
+    {
+      "name": "linux-gcc-x64-release",
+      "inherits": "linux-test-no-tests-base",
+      "configurePreset": "linux-gcc-x64-release"
+    },
+    {
+      "name": "linux-gcc-x64-debug-tests",
+      "inherits": "linux-test-enabled-base",
+      "configurePreset": "linux-gcc-x64-debug-tests"
+    },
+    {
+      "name": "linux-gcc-x64-relwithdebinfo-tests",
+      "inherits": "linux-test-enabled-base",
+      "configurePreset": "linux-gcc-x64-relwithdebinfo-tests"
+    },
+    {
+      "name": "linux-gcc-x64-release-tests",
+      "inherits": "linux-test-enabled-base",
+      "configurePreset": "linux-gcc-x64-release-tests"
+    },
+    {
+      "name": "linux-clang-x64-debug-tests",
+      "inherits": "linux-test-enabled-base",
+      "configurePreset": "linux-clang-x64-debug-tests"
+    },
+    {
+      "name": "linux-clang-x64-release-tests",
+      "inherits": "linux-test-enabled-base",
+      "configurePreset": "linux-clang-x64-release-tests"
+    }
+  ],
+  "workflowPresets": [
+    {
+      "name": "win-msvc-x64-debug-tests",
+      "steps": [
+        { "type": "configure", "name": "win-msvc-x64-debug-tests" },
+        { "type": "build", "name": "win-msvc-x64-debug-tests" },
+        { "type": "test", "name": "win-msvc-x64-debug-tests" }
+      ]
+    },
+    {
+      "name": "win-msvc-x64-relwithdebinfo-tests",
+      "steps": [
+        { "type": "configure", "name": "win-msvc-x64-relwithdebinfo-tests" },
+        { "type": "build", "name": "win-msvc-x64-relwithdebinfo-tests" },
+        { "type": "test", "name": "win-msvc-x64-relwithdebinfo-tests" }
+      ]
+    },
+    {
+      "name": "win-msvc-x64-release-tests",
+      "steps": [
+        { "type": "configure", "name": "win-msvc-x64-release-tests" },
+        { "type": "build", "name": "win-msvc-x64-release-tests" },
+        { "type": "test", "name": "win-msvc-x64-release-tests" }
+      ]
+    },
+    {
+      "name": "linux-gcc-x64-debug-tests",
+      "steps": [
+        { "type": "configure", "name": "linux-gcc-x64-debug-tests" },
+        { "type": "build", "name": "linux-gcc-x64-debug-tests" },
+        { "type": "test", "name": "linux-gcc-x64-debug-tests" }
+      ]
+    },
+    {
+      "name": "linux-gcc-x64-relwithdebinfo-tests",
+      "steps": [
+        { "type": "configure", "name": "linux-gcc-x64-relwithdebinfo-tests" },
+        { "type": "build", "name": "linux-gcc-x64-relwithdebinfo-tests" },
+        { "type": "test", "name": "linux-gcc-x64-relwithdebinfo-tests" }
+      ]
+    },
+    {
+      "name": "linux-gcc-x64-release-tests",
+      "steps": [
+        { "type": "configure", "name": "linux-gcc-x64-release-tests" },
+        { "type": "build", "name": "linux-gcc-x64-release-tests" },
+        { "type": "test", "name": "linux-gcc-x64-release-tests" }
+      ]
+    },
+    {
+      "name": "linux-clang-x64-debug-tests",
+      "steps": [
+        { "type": "configure", "name": "linux-clang-x64-debug-tests" },
+        { "type": "build", "name": "linux-clang-x64-debug-tests" },
+        { "type": "test", "name": "linux-clang-x64-debug-tests" }
+      ]
+    },
+    {
+      "name": "linux-clang-x64-release-tests",
+      "steps": [
+        { "type": "configure", "name": "linux-clang-x64-release-tests" },
+        { "type": "build", "name": "linux-clang-x64-release-tests" },
+        { "type": "test", "name": "linux-clang-x64-release-tests" }
+      ]
+    }
+  ]
+}

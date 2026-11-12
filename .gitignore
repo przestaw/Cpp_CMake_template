@@ -1,54 +1,61 @@
-!UseLATEX.cmake
-!Find*.cmake
-!cmake_modules/finders/*
-!cmake_modules/*
+# Build and install trees
+out/
+build/
+[Bb]in/
+[Oo]bj/
+cmake-build-*/
 
-#directories
-*Doxygen/
-.idea/*
-[Bb]in/*
-[Dd]ebug/*
-[Dd]ebugPublic/*
-[Rr]elease/*
-[Rr]eleases/*
-[Oo]bj/*
-[Ll]og/*
+# IDE and editor metadata
+.vs/
+.vscode/
+.idea/
+.cache/
+CMakeUserPresets.json
+CMakeSettings.json
+CMakeLists.txt.user*
+*.swp
+*.swo
+*~
 
-#CMake files
-CMakeFiles/*
-cmake-*
+# Generated CMake and tooling artifacts
+CMakeFiles/
 CMakeCache.txt
+cmake_install.cmake
+CTestTestfile.cmake
+DartConfiguration.tcl
+Testing/
+install_manifest.txt
+compile_commands.json
 [Mm]akefile
+build.ninja
+.ninja_deps
+.ninja_log
 
-# Prerequisites
+# Documentation output (Doxygen builds inside out/ or build/)
+/build-docs/
+*Doxygen/
+
+# Compiled binaries and debug symbols
 *.d
-
-# Compiled Object files
-*.slo
-*.lo
 *.o
 *.obj
-
-# Precompiled Headers
+*.lo
+*.slo
 *.gch
 *.pch
-
-# Compiled Dynamic libraries
 *.so
+*.so.*
 *.dylib
 *.dll
-
-# Fortran module files
-*.mod
-*.smod
-
-# Compiled Static libraries
-*.lai
-*.la
-*.a
 *.lib
-
-# Executables
+*.a
+*.la
+*.lai
+*.exp
+*.ilk
+*.pdb
+*.ipdb
+*.iobj
 *.exe
 *.out
 *.app
