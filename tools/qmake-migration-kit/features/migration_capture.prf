@@ -1,0 +1,16 @@
+# Route compiler, linker and archiver calls of a qmake build through qmigrate/ccwrap.py.
+# Usage: CONFIG+=migration_capture with MIGRATION_CAPTURE_PREFIX in the environment
+# (a shell-quoted "python ccwrap.py LOG_DIR" prepared by `qmig capture qmake`).
+# Values are expanded at assignment, so QMAKE_LINK (= g++ etc.) is wrapped exactly once.
+
+isEmpty(MIGRATION_CAPTURE_PREFIX): MIGRATION_CAPTURE_PREFIX = $$getenv(MIGRATION_CAPTURE_PREFIX)
+isEmpty(MIGRATION_CAPTURE_PREFIX): error("migration_capture: MIGRATION_CAPTURE_PREFIX not set")
+
+!isEmpty(QMAKE_CC):          QMAKE_CC          = $$MIGRATION_CAPTURE_PREFIX cc $$QMAKE_CC
+!isEmpty(QMAKE_CXX):         QMAKE_CXX         = $$MIGRATION_CAPTURE_PREFIX cxx $$QMAKE_CXX
+!isEmpty(QMAKE_LINK):        QMAKE_LINK        = $$MIGRATION_CAPTURE_PREFIX link $$QMAKE_LINK
+!isEmpty(QMAKE_LINK_SHLIB):  QMAKE_LINK_SHLIB  = $$MIGRATION_CAPTURE_PREFIX link $$QMAKE_LINK_SHLIB
+!isEmpty(QMAKE_LINK_C):      QMAKE_LINK_C      = $$MIGRATION_CAPTURE_PREFIX link $$QMAKE_LINK_C
+!isEmpty(QMAKE_LINK_C_SHLIB): QMAKE_LINK_C_SHLIB = $$MIGRATION_CAPTURE_PREFIX link $$QMAKE_LINK_C_SHLIB
+!isEmpty(QMAKE_AR):          QMAKE_AR          = $$MIGRATION_CAPTURE_PREFIX ar $$QMAKE_AR
+!isEmpty(QMAKE_LIB):         QMAKE_LIB         = $$MIGRATION_CAPTURE_PREFIX lib $$QMAKE_LIB

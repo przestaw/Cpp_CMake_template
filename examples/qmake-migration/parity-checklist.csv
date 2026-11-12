@@ -1,0 +1,19 @@
+phase,check,evidence,acceptance
+profile,Freeze identical Qt compiler architecture dialect and build mode,Toolchain and qmake -query metadata,Build-system parity isolated from C++ standard and Qt major upgrades
+export,Evaluate native .pro .pri and .prf rules per target and variant,Exported schema v2 JSON model and raw records,Zero failed projects and all expected product targets present
+capture,Record non-empty compile and link invocations on both builds,Captured buildtree.json command counts,Zero-TU capture fails completeness gate when sources exist
+compile,Preserve macro values undefs and PRIVATE DLL export ownership,Per-TU compile command comparison,Producer export macro never leaks to consumer targets
+compile,Preserve quoted string defines paired flags and response-file args,Raw compiler argv and response files,No split multi-word flag or deduplicated paired option
+headers,Compile public headers in a downstream consumer target,Consumer compile check,No accidental dependency on private generated headers
+headers,Verify AUTOMOC discovery of Q_OBJECT and Q_NAMESPACE_EXPORT,AutogenInfo.json and moc compilation output,All expected staticMetaObject symbols exported and resolved
+link,Model library variants transitive usage and Windows .dll/.lib pairs,Link command lines and IMPORTED target properties,Correct configuration variant and architecture linked
+link,Declare shared-library VERSION and SOVERSION policy explicitly,Installed library filenames symlinks and SONAME,Accepted versioning and symlink layout documented
+codegen,Verify host code generator executes with required runtime and plugins,Minimal generator invocation in build environment,Generator exits 0 without missing-DLL or plugin loader errors
+codegen,Confirm no-op incremental build skips code regeneration,Second build trace and output mtime,Generated header timestamp unchanged on no-op build
+codegen,Confirm input schema edit triggers rebuild of consumers,Modified schema build and binary output,Consumer reflects updated generated value
+codegen,Confirm deleted generated output is recreated automatically,Build trace after deleting generated header,Header regenerated and target relinked without clean build
+install,Compare normalized relative install trees across staging prefixes,Relative file inventory ELF NEEDED/RUNPATH and modes,Every missing or extra installed file accounted for
+runtime,Execute staged binary and plugin load test outside build tree,Fresh staging prefix smoke run,Application starts and loads plugins without build-tree paths
+package,Run product packaging rules against CMake install stage,Generated archive or installer file listing,All expected resource globs and runtime dependencies present
+tests,Execute CTest or test binaries explicitly after compilation,Test runner exit status and XML/log output,All selected unit and integration suites executed and passed
+ci,Verify preset-driven stages ran for the expected commit and config,CI stage logs and artifact summary,No silently skipped validation stage treated as green

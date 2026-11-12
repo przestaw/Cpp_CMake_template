@@ -1,0 +1,36 @@
+{
+  "version": 6,
+  "configurePresets": [
+    {
+      "name": "local-linux",
+      "inherits": "linux-base",
+      "generator": "Unix Makefiles",
+      "binaryDir": "${sourceDir}/build/local-linux",
+      "cacheVariables": {
+        "CMAKE_PREFIX_PATH": "$env{TUTORIAL_QT_ROOT}",
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/stage/local-linux"
+      }
+    },
+    {
+      "name": "local-windows",
+      "inherits": "windows-base",
+      "binaryDir": "${sourceDir}/build/local-windows",
+      "cacheVariables": {
+        "CMAKE_PREFIX_PATH": "$env{TUTORIAL_QT_ROOT}",
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/stage/local-windows"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "local-linux",
+      "configurePreset": "local-linux",
+      "jobs": 7
+    },
+    {
+      "name": "local-windows",
+      "configurePreset": "local-windows",
+      "jobs": 7
+    }
+  ]
+}

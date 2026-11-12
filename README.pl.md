@@ -23,6 +23,11 @@ Przejrzysty, niewymagający zewnętrznych zależności szablon projektu **C++20*
 │   ├── add_project_target.cmake      # Wspólna konfiguracja targetów (C++20, unity, foldery IDE)
 │   ├── git_version.cmake             # Odczyt wersji i commita z Gita bez zatruwania cache'u
 │   └── target_warnings.cmake         # Zakresowe (PRIVATE) ostrzeżenia, sanitizery i clang-tidy
+├── docs/
+│   ├── qmake-cmake-guide.md          # Dodatek: tutorial migracji qmake i Qt 5 -> CMake i Qt 6 (EN)
+│   └── qmake-cmake-guide.pl.md       # Dodatek: tutorial migracji qmake i Qt 5 -> CMake i Qt 6 (PL)
+├── examples/
+│   └── qmake-migration/              # Dodatek: referencyjny wycinek before/after Qt i szablony CMake
 ├── include/cpp_template/
 │   ├── cli_parser.hpp                # Bez-zależnościowy parser argumentów CLI w C++20
 │   ├── greeter.hpp                   # Przykładowe API biblioteki z użyciem konceptów C++20
@@ -40,6 +45,8 @@ Przejrzysty, niewymagający zewnętrznych zależności szablon projektu **C++20*
 │   ├── test_framework.hpp            # Mostek do GTest + wbudowany runner C++20
 │   ├── cli_parser_tests.cpp
 │   └── greeter_tests.cpp
+├── tools/
+│   └── qmake-migration-kit/          # CLI qmig, sondy .prf, mapper, przykłady i testy
 ├── CMakeLists.txt
 ├── CMakePresets.json
 └── CMakeUserPresets.json.example     # Szablon lokalnych nadpisań dewelopera
@@ -165,6 +172,14 @@ cmake -S . -B build -G Ninja \
   -DCMAKE_PREFIX_PATH=/sciezka/do/Cpp_CMake_template/out/install/linux-gcc-x64-release
 cmake --build build
 ```
+
+## Dodatek: Tutorial i szablony migracji qmake i Qt 5 -> CMake i Qt 6
+
+Jako opcjonalne uzupełnienie dla zespołów przenoszących projekty Qt na nowoczesny CMake 3.25+ i Qt 6 repozytorium zawiera dwujęzyczny przewodnik, działający wycinek referencyjny `before`/`after` oraz konfigurowalne skrypty pomocnicze w Pythonie (wymagające adaptacji do docelowego projektu, a nie działające jako automatyczny konwerter):
+
+- **[Tutorial migracji (`docs/qmake-cmake-guide.pl.md`)](docs/qmake-cmake-guide.pl.md)** ([English](docs/qmake-cmake-guide.md)) — etapowa weryfikacja zgodności (`qmake` → `CMake` → C++20 → Qt 6), granice eksportu DLL (`PRIVATE`) oraz pluginów Qt Designera, reguły `AUTOMOC`/`AUTOUIC` i kolizje strażników `uic` dla nazw z kropkami, kolejność generatorów kodu (`AUTOGEN_TARGET_DEPENDS`) oraz docelowe funkcje Qt 6.5+ (`qt_standard_project_setup()`, `qt_add_*`).
+- **[Wycinek referencyjny i szablony (`examples/qmake-migration/`)](examples/qmake-migration/README.pl.md)** ([English](examples/qmake-migration/README.md)) — równoległy build `before/` (`qmake`) i `after/` (`CMake 3.25+`) na wspólnych źródłach C++/Qt, izolowane fragmenty CMake (`snippets/`), reprodukcja kolizji strażników UIC oraz lista kontrolna [`parity-checklist.csv`](examples/qmake-migration/parity-checklist.csv).
+- **[Konfigurowalne skrypty `qmig` (`tools/qmake-migration-kit/`)](tools/qmake-migration-kit/README.pl.md)** ([English](tools/qmake-migration-kit/README.md) · [Znane ograniczenia](tools/qmake-migration-kit/KNOWN_GAPS.pl.md)) — sondy `.prf` eksportu modelu i przechwytywania kompilacji w czystym Pythonie 3.9+, statyczny linter pułapek `qmake`, generator szkiców CMake, porównywarka jednostek translacji i drzew instalacji oraz 25 testów jednostkowych (`python3 -m unittest discover -s tools/qmake-migration-kit/tests -v`).
 
 ## Licencja
 

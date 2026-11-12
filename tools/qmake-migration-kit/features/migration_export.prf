@@ -1,0 +1,141 @@
+# Export qmake project data during CONFIG feature processing.
+# Usage: CONFIG+=migration_export, with MIGRATION_EXPORT_FILE set in the
+# environment (preferred: survives spaces in paths) or on the command line.
+# Values are written as line records separated by |@|; Python creates JSON.
+# Captures metadata (spec, build pass, variant), variables, installation rules,
+# custom compilers and their inputs, extra targets, substitutes, and subdirectory
+# relationships. Later qmake phases may still add settings; compare this evidence
+# with actual compile/link commands.
+# MIGRATION_EXTRA_VARS extends the list of exported project variables.
+
+isEmpty(MIGRATION_EXPORT_FILE): MIGRATION_EXPORT_FILE = $$getenv(MIGRATION_EXPORT_FILE)
+isEmpty(MIGRATION_EXPORT_FILE): error("migration_export: MIGRATION_EXPORT_FILE not set")
+
+!isEmpty(PKGCONFIG) {
+    MIGRATION_EXPORT_PKG_CONFIG = $$QMAKE_PKG_CONFIG
+    isEmpty(MIGRATION_EXPORT_PKG_CONFIG): MIGRATION_EXPORT_PKG_CONFIG = pkg-config
+    # Default (word) mode: one flag per item, no embedded newlines.
+    MIGRATION_PKGCONFIG_CFLAGS = $$system($$MIGRATION_EXPORT_PKG_CONFIG --cflags $$PKGCONFIG, , MIGRATION_PKGCONFIG_STATUS)
+    !equals(MIGRATION_PKGCONFIG_STATUS, 0): error("migration_export: pkg-config --cflags failed for $$PKGCONFIG")
+    MIGRATION_PKGCONFIG_LIBS = $$system($$MIGRATION_EXPORT_PKG_CONFIG --libs $$PKGCONFIG, , MIGRATION_PKGCONFIG_STATUS)
+    !equals(MIGRATION_PKGCONFIG_STATUS, 0): error("migration_export: pkg-config --libs failed for $$PKGCONFIG")
+}
+
+MIGRATION_EXPORT_VARS = \
+    TEMPLATE TARGET TARGET_EXT DESTDIR VERSION \
+    CONFIG QT QT_PRIVATE QT_MAJOR_VERSION QT_VERSION \
+    DEFINES INCLUDEPATH DEPENDPATH \
+    PKGCONFIG MIGRATION_PKGCONFIG_CFLAGS MIGRATION_PKGCONFIG_LIBS \
+    SOURCES HEADERS FORMS RESOURCES \
+    GENERATED_SOURCES GENERATED_FILES OBJECTIVE_SOURCES \
+    LEXSOURCES YACCSOURCES TRANSLATIONS \
+    PRECOMPILED_HEADER RC_FILE RC_ICONS DEF_FILE \
+    LIBS LIBS_PRIVATE QMAKE_LIBDIR QMAKE_RPATHDIR \
+    QMAKE_CXXFLAGS QMAKE_CFLAGS QMAKE_LFLAGS \
+    QMAKE_CXXFLAGS_DEBUG QMAKE_CXXFLAGS_RELEASE \
+    QMAKE_CFLAGS_DEBUG QMAKE_CFLAGS_RELEASE \
+    QMAKE_LFLAGS_DEBUG QMAKE_LFLAGS_RELEASE \
+    QMAKE_PRE_LINK QMAKE_POST_LINK \
+    QMAKE_EXTENSION_SHLIB \
+    OTHER_FILES DISTFILES \
+    INSTALLS QMAKE_EXTRA_COMPILERS QMAKE_EXTRA_TARGETS QMAKE_SUBSTITUTES \
+    PRE_TARGETDEPS POST_TARGETDEPS \
+    SUBDIRS \
+    OBJECTS_DIR MOC_DIR UI_DIR RCC_DIR \
+    _PRO_FILE_ _PRO_FILE_PWD_ OUT_PWD \
+    $$MIGRATION_EXTRA_VARS
+
+MIGRATION_INSTALL_KEYS  = files path base extra commands CONFIG depends uninstall
+MIGRATION_COMPILER_KEYS = name input output output_function variable_out commands \
+                      depends depend_command dependency_type variables CONFIG clean \
+                      explicit_dependencies
+MIGRATION_TARGET_KEYS   = target depends commands CONFIG
+MIGRATION_SUBDIR_KEYS   = subdir file depends target makefile CONFIG
+MIGRATION_SUBST_KEYS    = input output
+
+MIGRATION_TARGET_EFFECTIVE = $$TARGET
+isEmpty(MIGRATION_TARGET_EFFECTIVE) {
+    MIGRATION_TARGET_EFFECTIVE = $$basename(_PRO_FILE_)
+    MIGRATION_TARGET_EFFECTIVE = $$replace(MIGRATION_TARGET_EFFECTIVE, "\\.pro$", "")
+}
+
+# debug_and_release evaluates the project once more per variant. Record which
+# evaluation produced this record instead of letting duplicates look identical.
+MIGRATION_BUILD_PASS = 0
+build_pass: MIGRATION_BUILD_PASS = 1
+CONFIG(debug, debug|release): MIGRATION_VARIANT = debug
+else: MIGRATION_VARIANT = release
+
+MIGRATION_LINES =
+MIGRATION_LINES += "record|@|begin"
+MIGRATION_LINES += "pro|@|$$_PRO_FILE_"
+MIGRATION_LINES += "meta|@|buildPass|@|$$MIGRATION_BUILD_PASS"
+MIGRATION_LINES += "meta|@|variant|@|$$MIGRATION_VARIANT"
+debug_and_release: MIGRATION_LINES += "meta|@|debugAndRelease|@|1"
+else: MIGRATION_LINES += "meta|@|debugAndRelease|@|0"
+MIGRATION_LINES += "meta|@|spec|@|$$[QMAKE_SPEC]"
+MIGRATION_LINES += "meta|@|xspec|@|$$[QMAKE_XSPEC]"
+MIGRATION_LINES += "meta|@|hostOs|@|$$QMAKE_HOST.os"
+MIGRATION_LINES += "meta|@|compiler|@|$$QMAKE_CXX"
+MIGRATION_LINES += "var|@|MIGRATION_TARGET_EFFECTIVE|@|$$MIGRATION_TARGET_EFFECTIVE"
+
+for(v, MIGRATION_EXPORT_VARS) {
+    for(item, $$v) {
+        MIGRATION_LINES += "var|@|$$v|@|$$item"
+    }
+}
+
+for(inst, INSTALLS) {
+    for(sub, MIGRATION_INSTALL_KEYS) {
+        key = $${inst}.$${sub}
+        for(item, $$key) {
+            MIGRATION_LINES += "install|@|$$inst|@|$$sub|@|$$item"
+        }
+    }
+}
+
+for(cmp, QMAKE_EXTRA_COMPILERS) {
+    for(sub, MIGRATION_COMPILER_KEYS) {
+        key = $${cmp}.$${sub}
+        for(item, $$key) {
+            MIGRATION_LINES += "compiler|@|$$cmp|@|$$sub|@|$$item"
+        }
+    }
+    inputkey = $${cmp}.input
+    for(inputvar, $$inputkey) {
+        for(item, $$inputvar) {
+            MIGRATION_LINES += "compilerinput|@|$$cmp|@|$$inputvar|@|$$item"
+        }
+    }
+}
+
+for(tgt, QMAKE_EXTRA_TARGETS) {
+    for(sub, MIGRATION_TARGET_KEYS) {
+        key = $${tgt}.$${sub}
+        for(item, $$key) {
+            MIGRATION_LINES += "extratarget|@|$$tgt|@|$$sub|@|$$item"
+        }
+    }
+}
+
+for(sd, SUBDIRS) {
+    for(sub, MIGRATION_SUBDIR_KEYS) {
+        key = $${sd}.$${sub}
+        for(item, $$key) {
+            MIGRATION_LINES += "subdir|@|$$sd|@|$$sub|@|$$item"
+        }
+    }
+}
+
+for(st, QMAKE_SUBSTITUTES) {
+    for(sub, MIGRATION_SUBST_KEYS) {
+        key = $${st}.$${sub}
+        for(item, $$key) {
+            MIGRATION_LINES += "substitute|@|$$st|@|$$sub|@|$$item"
+        }
+    }
+}
+
+MIGRATION_LINES += "record|@|end"
+
+write_file($$MIGRATION_EXPORT_FILE, MIGRATION_LINES, append)

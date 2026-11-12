@@ -1,0 +1,11 @@
+{
+  "matchQmakeDefaults": true,
+  "libs": {"-lssl": "OpenSSL::SSL", "-lcrypto": "OpenSSL::Crypto", "-lz": "ZLIB::ZLIB"},
+  "findPackages": ["OpenSSL REQUIRED", "ZLIB REQUIRED", "Python3 REQUIRED COMPONENTS Interpreter"],
+  "tools": {"python3": "${Python3_EXECUTABLE}"},
+  "installPaths": {"/opt/myproduct": ""},
+  "dropDefines": ["QT_MESSAGELOGCONTEXT"],
+  "dropFlags": ["-fdiagnostics-color=always"],
+  "ignoreVars": ["DISTFILES"],
+  "qt6Components": {"app/app.pro": ["OpenGLWidgets"]}
+}

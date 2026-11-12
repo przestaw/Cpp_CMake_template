@@ -1,0 +1,4 @@
+{
+  "tools": {"python3": "${Python3_EXECUTABLE}"},
+  "findPackages": ["Python3 REQUIRED COMPONENTS Interpreter"]
+}

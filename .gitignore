@@ -65,3 +65,7 @@ build.ninja
 *.log
 *.synctex.gz
 *.toc
+
+# Python bytecode (tools/qmake-migration-kit)
+__pycache__/
+*.py[cod]

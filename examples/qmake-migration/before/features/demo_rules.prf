@@ -1,0 +1,4 @@
+# ==== CUSTOM QMAKE FEATURE ====
+# Loaded via `load(demo_rules)` when `QMAKEFEATURES` includes `before/features`.
+# CMake targets must declare this compile contract explicitly (`DEMO_FEATURE_LOADED`).
+DEFINES += DEMO_FEATURE_LOADED

@@ -1,0 +1,25 @@
+{
+  "tool": "Qt uic 5.15.15",
+  "cases": [
+    {
+      "input": "panel.alpha.ui",
+      "output": "ui_panel.alpha.h",
+      "guard": "UI_PANEL_H"
+    },
+    {
+      "input": "panel.alpha.ui",
+      "output": "ui_alpha_panel.h",
+      "guard": "UI_ALPHA_PANEL_H"
+    },
+    {
+      "input": "panel.beta.ui",
+      "output": "ui_panel.beta.h",
+      "guard": "UI_PANEL_H"
+    },
+    {
+      "input": "panel.beta.ui",
+      "output": "ui_beta_panel.h",
+      "guard": "UI_BETA_PANEL_H"
+    }
+  ]
+}

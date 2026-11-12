@@ -65,6 +65,9 @@ jobs:
           cmake --build out/consumer-build
           ./out/consumer-build/consumer
 
+      - name: Validate qmake migration kit unit tests
+        run: python3 -m unittest discover -s tools/qmake-migration-kit/tests -v
+
   windows:
     name: Windows (${{ matrix.preset }})
     runs-on: windows-latest
@@ -123,3 +126,6 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           ./out/consumer-build/consumer.exe
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Validate qmake migration kit unit tests
+        run: python -m unittest discover -s tools/qmake-migration-kit/tests -v

@@ -1,0 +1,8 @@
+{
+  "accept": [
+    {"rule": "define.reentrant", "reason": "GCC -pthread defines _REENTRANT"},
+    {"rule": "include.qt-system", "reason": "Qt headers as -isystem are intended"},
+    {"rule": "link.lib-lost", "message": "pthread", "reason": "Threads::Threads links via -pthread"},
+    {"rule": "flags.std-qt6", "project": "*", "reason": "Qt 6 requires C++17; reviewed in ticket QT6-12"}
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "name": "myproduct",
+  "sourceRoot": "..",
+  "workspace": "../qmig-work",
+  "projects": ["myproduct.pro"],
+  "recursive": true,
+  "features": ["../build/features"],
+  "adapter": "adapter.example.json",
+  "policy": "policy.example.json",
+  "variant": null,
+  "gates": {"lint": "error", "qt6": "never", "compare": "error"},
+  "qt6": {"target": "6.5", "qmake": "${env:QT6_QMAKE}", "scanTree": false},
+  "profiles": {
+    "linux-qt5-release": {
+      "qmake": "${env:QT5_QMAKE}",
+      "qmakeArgs": ["CONFIG+=release"],
+      "env": {"PKG_CONFIG_PATH": "${env:HOME}/deps/lib/pkgconfig"},
+      "jobs": 8,
+      "cmake": {"generator": "Ninja", "buildType": "Release", "qt": "dual", "qtMajor": 5,
+                "args": ["-DCMAKE_PREFIX_PATH=${env:QT5_PREFIX}"]}
+    },
+    "linux-qt5-deprecated": {
+      "qmake": "${env:QT5_QMAKE}",
+      "qmakeArgs": ["CONFIG+=release"],
+      "cmake": {"generator": "Ninja", "qt": "dual", "qtMajor": 5,
+                "args": ["-DCMAKE_PREFIX_PATH=${env:QT5_PREFIX}",
+                         "-DCMAKE_CXX_FLAGS=-DQT_DISABLE_DEPRECATED_BEFORE=0x050F00"]}
+    },
+    "linux-qt6-release": {
+      "qmake": "${env:QT5_QMAKE}",
+      "qmakeArgs": ["CONFIG+=release"],
+      "cmake": {"generator": "Ninja", "qt": "dual", "qtMajor": 6, "qmake": "${env:QT6_QMAKE}",
+                "args": ["-DCMAKE_PREFIX_PATH=${env:QT6_PREFIX}"]}
+    },
+    "windows-qt5-release": {
+      "qmake": "C:/Qt/5.15.2/msvc2019_64/bin/qmake.exe",
+      "qmakeArgs": ["CONFIG+=release", "CONFIG-=debug_and_release"],
+      "make": ["jom"],
+      "cmake": {"generator": "Ninja", "qt": "dual", "qtMajor": 5}
+    }
+  }
+}
